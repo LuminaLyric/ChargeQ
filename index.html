@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ChargeQ: fair power for disaster charging hubs</title>
+<style>
+:root{--bg:#0d1820;--pn:#14232e;--pn2:#1a2d3b;--ln:#27404f;--tx:#eaf2f6;--mu:#8da6b4;--am:#ffb43a;--R:#ff5a3c;--P:#ffb43a;--G:#5cc8e6;--ok:#6be3a4;--bad:#ff5a3c;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#eef3f6;--pn:#fff;--pn2:#e3ecf1;--ln:#c4d3dc;--tx:#112430;--mu:#53707f;--am:#c77700;--R:#d93a1c;--P:#c77700;--G:#157a99;--ok:#13804f;--bad:#d93a1c;color-scheme:light}}
+:root[data-theme="dark"]{--bg:#0d1820}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Avenir Next","Segoe UI",system-ui,sans-serif;min-height:100vh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.wrap{max-width:1100px;margin:0 auto;padding:18px 16px 60px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+h1{font-size:26px;margin:0;letter-spacing:-.5px}h1 span{color:var(--am)}
+.sub{color:var(--mu);font-size:13px;margin-top:2px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{border:1px solid var(--ln);background:var(--pn);border-radius:99px;padding:5px 12px;font-size:13px;color:var(--mu);display:inline-flex;gap:6px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}.off .dot{background:var(--am)}
+.seg{display:inline-flex;border:1px solid var(--ln);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:var(--pn);color:var(--mu);padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+.seg button.on{background:var(--am);color:#1b1200;font-weight:700}
+.hero{background:var(--pn);border:1px solid var(--ln);border-radius:18px;padding:20px;margin-bottom:16px}
+.hero h2{margin:0 0 4px;font-size:15px;font-weight:600;color:var(--mu)}
+.big{display:flex;flex-wrap:wrap;gap:22px;align-items:baseline;margin:6px 0 14px}
+.big b{font-size:54px;line-height:1;letter-spacing:-2px}.big small{color:var(--mu);font-size:14px}
+.stat{display:flex;flex-direction:column}.stat strong{font-size:22px}.stat span{color:var(--mu);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(22px,1fr));gap:5px}
+.blk{height:30px;border-radius:5px;background:var(--pn2);border:1px solid var(--ln);position:relative}
+.blk.used{background:transparent;border-style:dashed;opacity:.45}
+.blk.free{background:color-mix(in srgb,var(--ok) 30%,transparent);border-color:var(--ok)}
+.blk.active{background:var(--ok);border-color:var(--ok);animation:pu 1.4s ease-in-out infinite}
+.blk.R{background:var(--R);border-color:var(--R)}.blk.P{background:var(--P);border-color:var(--P)}.blk.G{background:var(--G);border-color:var(--G)}
+@keyframes pu{50%{opacity:.45}}@media (prefers-reduced-motion:reduce){.blk.active{animation:none}}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12.5px;color:var(--mu)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.warn{margin-top:12px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--bad) 16%,transparent);border:1px solid var(--bad);font-size:14px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px}
+@media(max-width:820px){.cols{grid-template-columns:1fr}}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:16px;padding:16px;margin-bottom:16px}
+.card h3{margin:0 0 12px;font-size:16px}
+label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}
+input,select,textarea{width:100%;background:var(--pn2);color:var(--tx);border:1px solid var(--ln);border-radius:10px;padding:10px 12px;font:inherit}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--am);outline-offset:2px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tiers label{margin:0;cursor:pointer}.tiers input{display:none}
+.tiers span{display:block;text-align:center;padding:9px 4px;border-radius:10px;border:2px solid var(--ln);font-size:13px;line-height:1.25}
+.tiers input:checked+span{border-color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--tx);font-weight:700}
+.btn{border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:700;cursor:pointer;background:var(--am);color:#1b1200}
+.btn.g{background:var(--pn2);color:var(--tx);border:1px solid var(--ln);font-weight:600}.btn.sm{padding:6px 11px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:not-allowed}.full{width:100%;margin-top:14px}
+.ports{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.port{border:1px solid var(--ln);border-radius:12px;padding:10px;background:var(--pn2);min-height:112px;display:flex;flex-direction:column;gap:6px}
+.port.busy{border-color:var(--ok)}.port small{color:var(--mu)}
+.bar{height:6px;border-radius:9px;background:var(--ln);overflow:hidden}.bar i{display:block;height:100%;background:var(--ok)}
+.tok{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;padding:2px 8px;border-radius:7px;color:#10181d;font-size:13px}
+.tok.R{background:var(--R)}.tok.P{background:var(--P)}.tok.G{background:var(--G)}
+.q{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--ln)}.q:first-child{border-top:0}
+.q .m{flex:1;min-width:0}.q .m div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.q small{color:var(--mu)}
+.x{background:none;border:0;color:var(--mu);font-size:20px;cursor:pointer;padding:4px 8px}
+.empty{color:var(--mu);padding:14px 0;font-size:14px}
+.tele{display:none}.sensor .tele{display:block}
+.tele .v{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:8px}.tele .v div{font-size:12.5px;color:var(--mu)}.tele .v b{display:block;font-size:20px;color:var(--tx)}
+svg.sp{width:100%;height:60px;display:block}
+pre{background:var(--pn2);border:1px solid var(--ln);border-radius:10px;padding:12px;font-size:12.5px;overflow-x:auto;margin:0;color:var(--mu)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;margin-bottom:12px}.flow span{padding:6px 10px;border-radius:9px;border:1px solid var(--ln);background:var(--pn2)}.flow .hw{border-style:dashed;color:var(--am)}
+dialog{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:16px;width:min(640px,94vw);padding:18px}
+dialog::backdrop{background:#000a}textarea{height:210px;font:12.5px ui-monospace,Menlo,monospace}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:92vw}
+#toast.on{opacity:1}
+</style></head>
+<body>
+<div class="wrap" id="app">
+<header>
+ <div><h1>Charge<span>Q</span></h1><div class="sub">Fair, offline power for emergency charging hubs in the first 72 hours</div></div>
+ <div class="chips">
+  <span class="pill" id="net"><i class="dot"></i><span id="nettx">Works offline</span></span>
+  <div class="seg" role="group" aria-label="Power source"><button id="m1" class="on">Manual input</button><button id="m2">Sensor (simulated)</button></div>
+ </div>
+</header>
+
+<section class="hero" aria-live="polite">
+ <h2>Every block is one phone charge. Colored blocks are people waiting.</h2>
+ <div class="big" id="big"></div>
+ <div class="grid" id="grid"></div>
+ <div class="legend"><span><i style="background:var(--ok)"></i>Charging now</span><span><i style="background:color-mix(in srgb,var(--ok) 30%,transparent);border:1px solid var(--ok)"></i>Spare charge</span><span><i style="background:var(--R)"></i>Rescue and medical</span><span><i style="background:var(--P)"></i>Elderly and children</span><span><i style="background:var(--G)"></i>General</span><span><i style="border:1px dashed var(--mu)"></i>Already used</span></div>
+ <div id="warn"></div>
+</section>
+
+<div class="cols">
+ <div>
+  <div class="card">
+   <h3>Add a person to the queue</h3>
+   <form id="f" autocomplete="off">
+    <div class="tiers" role="radiogroup" aria-label="Priority">
+     <label style="--c:var(--R)"><input type="radio" name="t" value="R"><span>Rescue or medical</span></label>
+     <label style="--c:var(--P)"><input type="radio" name="t" value="P"><span>Elderly or children</span></label>
+     <label style="--c:var(--G)"><input type="radio" name="t" value="G" checked><span>General</span></label>
+    </div>
+    <label for="nm">Name</label><input id="nm" required maxlength="40" placeholder="Meena Devi">
+    <label for="vl">Village or area</label><input id="vl" maxlength="40" placeholder="Kuttanad">
+    <label for="ms">Safe-Ping message (sent to family when signal returns)</label><input id="ms" maxlength="90" placeholder="I’m safe at the school shelter">
+    <button class="btn full" type="submit">Get token</button>
+   </form>
+  </div>
+  <div class="card">
+   <h3>Hub setup</h3>
+   <div class="row"><div><label for="cap">Battery capacity (Wh)</label><input id="cap" type="number" min="20" max="5000"></div><div><label for="wp">Energy per phone (Wh)</label><input id="wp" type="number" min="2" max="40"></div></div>
+   <div class="row"><div><label for="pt">Charging ports</label><input id="pt" type="number" min="1" max="12"></div><div><label for="mn">Minutes per phone</label><input id="mn" type="number" min="5" max="180"></div></div>
+   <div class="row" style="margin-top:12px"><button class="btn g" id="refill">Refill battery</button><button class="btn g" id="demo">Load demo hub</button></div>
+  </div>
+ </div>
+ <div>
+  <div class="card"><h3>Charging ports</h3><div class="ports" id="ports"></div>
+   <div class="row" style="margin-top:12px"><button class="btn" id="serve">Serve next in queue</button><button class="btn g" id="exp">Export Safe-Pings and log</button></div></div>
+  <div class="card"><h3>Queue <span class="sub" id="qc"></span></h3><div id="ql"></div></div>
+  <div class="card tele"><h3>Live sensor feed</h3><div class="v"><div>Battery voltage<b id="tv">–</b></div><div>Current<b id="ta">–</b></div><div>Power<b id="tw">–</b></div></div>
+   <svg class="sp" id="sp" viewBox="0 0 200 60" preserveAspectRatio="none"></svg>
+   <div class="sub">Demo speed is 60 times real time. Ports refill from the queue automatically in this mode.</div></div>
+ </div>
+</div>
+
+<div class="card">
+ <h3>Built to grow into hardware</h3>
+ <div class="flow"><span>Phones on hub Wi-Fi</span>→<span>ChargeQ app</span>→<span>Power source interface</span>→<span>Manual input today</span><span class="hw">INA219 sensor and port relays on ESP32 or Raspberry Pi next</span></div>
+<pre>PowerSource { getStatus() → { remainingWh }   // manual or INA219
+              startCharge(port)  stopCharge(port) }  // no-op or relay</pre>
+</div>
+</div>
+
+<dialog id="dlg"><h3 style="margin-top:0">Export</h3>
+ <div class="row" style="margin-bottom:10px"><button class="btn g" id="e1">Safe-Ping batch for SMS or radio</button><button class="btn g" id="e2">Service log (CSV)</button></div>
+ <textarea id="out" readonly aria-label="Export text"></textarea>
+ <div class="row" style="margin-top:10px"><button class="btn" id="cp">Copy text</button><button class="btn g" id="cl">Close</button></div>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script>
+var KEY="chargeq.v1",ACC=60,NAMES={R:"Rescue or medical",P:"Elderly or children",G:"General"},ORD={R:0,P:1,G:2},T=[],S;
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function def(){return{cap:500,wp:10,pt:4,mn:45,rem:500,q:[],act:[null,null,null,null],done:0,seq:{R:0,P:0,G:0},pings:[],log:[],mode:"manual"}}
+function load(){try{S=Object.assign(def(),JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){S=def()}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function toast(m){var t=$("toast");t.textContent=m;t.className="on";clearTimeout(toast.h);toast.h=setTimeout(function(){t.className=""},2400)}
+function sortQ(){S.q.sort(function(a,b){return ORD[a.tier]-ORD[b.tier]||a.at-b.at})}
+function add(name,tier,vl,ms){var tk=tier+"-"+String(++S.seq[tier]).padStart(3,"0"),p={t:tk,name:name,tier:tier,vl:vl,ms:ms,at:Date.now()};S.q.push(p);if(vl||ms)S.pings.push({t:tk,name:name,vl:vl,ms:ms||"I am safe",at:Date.now()});sortQ();save();render()}
+function phones(){return Math.floor(S.rem/S.wp)}
+function busy(){return S.act.filter(Boolean).length}
+function serve(){var i=S.act.indexOf(null);if(!S.q.length){toast("The queue is empty");return false}if(i<0){toast("All ports are in use");return false}if(phones()-busy()<1){toast("Battery is too low for another phone");return false}var p=S.q.shift();p.start=Date.now();S.act[i]=p;save();render();return true}
+function finish(i){var p=S.act[i];if(!p)return;if(S.mode==="manual")S.rem=Math.max(0,S.rem-S.wp);S.done++;S.log.push({t:p.t,name:p.name,tier:NAMES[p.tier],at:new Date().toISOString(),wh:S.wp});S.act[i]=null;save();render()}
+function fmt(m){m=Math.round(m);return m>=60?Math.floor(m/60)+" h "+(m%60)+" min":m+" min"}
+function render(){
+ var total=Math.floor(S.cap/S.wp),left=phones(),used=Math.max(0,total-left),b=busy(),qn=S.q.length,k=Math.max(1,Math.ceil(total/60)),h="";
+ for(var j=0;j<Math.ceil(total/k);j++){var n=j*k,c="free";if(n<used)c="used";else if(n<used+b)c="active";else if(n<used+b+qn)c=S.q[n-used-b].tier;h+='<div class="blk '+c+'"></div>'}
+ $("grid").innerHTML=h;
+ var run=left/Math.max(1,S.pt)*S.mn;
+ $("big").innerHTML='<b>'+left+'</b><small>phone charges left ('+Math.round(S.rem)+' of '+S.cap+' Wh)</small><div class="stat"><strong>'+fmt(run)+'</strong><span>runtime at full use</span></div><div class="stat"><strong>'+S.done+'</strong><span>people served</span></div><div class="stat"><strong>'+qn+'</strong><span>waiting</span></div>'+(k>1?'<small>1 block = '+k+' phones</small>':'');
+ var short=qn+b-left;$("warn").innerHTML=short>0?'<div class="warn"><b>Power gap:</b> '+short+' '+(short>1?'people':'person')+' in the queue will not get a charge. Rescue and medical tokens are served first. Bring more power or shorten sessions.</div>':"";
+ var free=S.act.filter(function(x){return !x}).length,ph="";
+ S.act.forEach(function(p,i){if(p){var pr=Math.min(100,(Date.now()-p.start)/1000*ACC/(S.mn*60)*100);ph+='<div class="port busy"><div><span class="tok '+p.tier+'">'+p.t+'</span></div><div>'+esc(p.name)+'</div>'+(S.mode==="sensor"?'<div class="bar"><i style="width:'+pr+'%"></i></div>':'<small>Started '+fmt((Date.now()-p.start)/60000)+' ago</small>')+'<button class="btn g sm" data-d="'+i+'">Done, unplug</button></div>'}else ph+='<div class="port"><b>Port '+(i+1)+'</b><small>Free</small></div>'});
+ $("ports").innerHTML=ph;
+ $("qc").textContent=qn?"("+qn+" waiting)":"";
+ var qh="";S.q.forEach(function(p,i){var w=i<free?0:Math.ceil((i+1-free)/S.pt)*S.mn,no=i+b>=left;qh+='<div class="q"><span class="tok '+p.tier+'">'+p.t+'</span><div class="m"><div>'+esc(p.name)+'</div><small>'+NAMES[p.tier]+(p.vl?", "+esc(p.vl):"")+(no?'. No power left for this token':'. About '+(w?fmt(w):"now"))+'</small></div><button class="x" aria-label="Remove '+esc(p.name)+'" data-r="'+i+'">×</button></div>'});
+ $("ql").innerHTML=qh||'<div class="empty">No one is waiting. Add the first person with the form.</div>';
+ ["cap","wp","pt","mn"].forEach(function(id){var e=$(id),key={cap:"cap",wp:"wp",pt:"pt",mn:"mn"}[id];if(document.activeElement!==e)e.value=S[key]});
+ $("m1").className=S.mode==="manual"?"on":"";$("m2").className=S.mode==="sensor"?"on":"";document.getElementById("app").className="wrap"+(S.mode==="sensor"?" sensor":"");
+}
+function tick(){
+ if(S.mode==="sensor"){
+  var w=0;S.act.forEach(function(p,i){if(p){w+=S.wp*60/S.mn;if((Date.now()-p.start)/1000*ACC>=S.mn*60){S.act[i]=null;S.done++;S.log.push({t:p.t,name:p.name,tier:NAMES[p.tier],at:new Date().toISOString(),wh:S.wp})}}});
+  w=w*(1+(Math.random()-.5)*.06)+1.2;S.rem=Math.max(0,S.rem-w*ACC/3600);
+  for(var n=0;n<S.pt;n++){if(S.q.length&&S.act.indexOf(null)>=0&&phones()-busy()>=1)serve0();else break}
+  var v=11+1.6*(S.rem/S.cap);T.push(w);if(T.length>60)T.shift();
+  $("tv").textContent=v.toFixed(2)+" V";$("tw").textContent=w.toFixed(1)+" W";$("ta").textContent=(w/v).toFixed(2)+" A";
+  var mx=Math.max.apply(null,T.concat([5])),pts=T.map(function(y,i){return(i*200/59).toFixed(1)+","+(56-y/mx*52).toFixed(1)}).join(" ");
+  $("sp").innerHTML='<polyline fill="none" stroke="var(--am)" stroke-width="2" points="'+pts+'"/>';save()}
+ render()}
+function serve0(){var i=S.act.indexOf(null),p=S.q.shift();p.start=Date.now();S.act[i]=p}
+function csv(rows){return rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(",")}).join("\n")}
+function exp(k){var o=$("out");if(k===1){o.value=S.pings.length?S.pings.map(function(p){return"SAFE|"+p.t+"|"+p.name+"|"+(p.vl||"-")+"|"+p.ms}).join("\n"):"No Safe-Ping messages yet."}else{o.value=csv([["token","name","priority","served_at","wh_used"]].concat(S.log.map(function(l){return[l.t,l.name,l.tier,l.at,l.wh]})))}}
+function demo(){S=def();S.mode=$("m2").className==="on"?"sensor":S.mode;[["Dr. Anitha","R","Kuttanad","Clinic staff, need to reach the district hospital"],["Boat team 3","R","Alappuzha","Rescue boats searching east bank"],["Meena Devi","P","Kuttanad","I’m safe at the school shelter"],["Raman (82)","P","Edathua","Safe, at the church hall"],["Arjun","G","Pulinkunnu","Everyone is okay, house flooded"],["Fatima","G","Champakulam","Safe with the kids at the camp"],["Joseph","G","Nedumudi","Alive, need medicine"],["Lakshmi","G","Kainakary","Safe, tell Amma"],["Suresh","G","Muhamma","Safe at the relief camp"],["Priya","G","Veliyanad","Safe"],["Kumar","G","Thakazhy","Safe"],["Nasir","G","Ambalappuzha","Safe, phone dying"]].forEach(function(d){add(d[0],d[1],d[2],d[3])});S.rem=170;save();render();toast("Demo hub loaded: 12 people, 170 Wh left")}
+document.addEventListener("click",function(e){var t=e.target;if(t.dataset.d!==undefined)finish(+t.dataset.d);if(t.dataset.r!==undefined){S.q.splice(+t.dataset.r,1);save();render()}});
+$("f").addEventListener("submit",function(e){e.preventDefault();var t=document.querySelector('input[name=t]:checked').value,n=$("nm").value.trim();if(!n)return;add(n,t,$("vl").value.trim(),$("ms").value.trim());e.target.reset();toast("Token issued");$("nm").focus()});
+$("serve").onclick=serve;$("refill").onclick=function(){S.rem=S.cap;save();render();toast("Battery marked full")};$("demo").onclick=demo;
+$("m1").onclick=function(){S.mode="manual";save();render()};$("m2").onclick=function(){S.mode="sensor";save();render()};
+["cap","wp","pt","mn"].forEach(function(id){$(id).addEventListener("change",function(){var v=Math.max(+this.min,Math.min(+this.max,+this.value||+this.min));S[id]=v;if(id==="cap")S.rem=v;if(id==="pt"){while(S.act.length<v)S.act.push(null);while(S.act.length>v){var p=S.act.pop();if(p)S.q.unshift(p)}sortQ()}save();render()})});
+$("exp").onclick=function(){exp(1);var d=$("dlg");if(d.showModal)d.showModal()};$("e1").onclick=function(){exp(1)};$("e2").onclick=function(){exp(2)};$("cl").onclick=function(){$("dlg").close()};
+$("cp").onclick=function(){var o=$("out");o.select();try{navigator.clipboard.writeText(o.value).then(function(){toast("Copied")},function(){document.execCommand("copy");toast("Copied")})}catch(e){document.execCommand("copy");toast("Copied")}};
+function net(){var on=navigator.onLine;$("net").className="pill"+(on?"":" off");$("nettx").textContent=on?"Online, works offline too":"Offline mode active"}
+window.addEventListener("online",net);window.addEventListener("offline",net);
+load();while(S.act.length<S.pt)S.act.push(null);net();render();setInterval(tick,1000);
+</script></body></html>
